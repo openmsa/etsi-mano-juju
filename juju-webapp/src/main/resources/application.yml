@@ -1,0 +1,23 @@
+debug: true
+logging:
+  level:
+    root: INFO
+    com:
+      ubiqube:
+        juju: DEBUG
+
+server:
+  error:
+    include-binding-errors: always
+    whitelabel:
+      enabled: false
+  port: 8200
+  servlet:
+    contextPath: /juju
+
+#spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#       jwt:
+#          issuer-uri: http://mano-auth:8080/auth/realms/mano-realm
