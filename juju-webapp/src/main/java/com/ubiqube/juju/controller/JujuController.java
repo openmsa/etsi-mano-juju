@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ubiqube.etsi.mano.dao.mano.juju.JujuCloud;
-import com.ubiqube.etsi.mano.dao.mano.juju.JujuCredential;
-import com.ubiqube.etsi.mano.dao.mano.juju.JujuMetadata;
-import com.ubiqube.etsi.mano.dao.mano.juju.JujuRegion;
+import com.ubiqube.etsi.mano.service.juju.entities.JujuCloud;
+import com.ubiqube.etsi.mano.service.juju.entities.JujuCredential;
+import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
+import com.ubiqube.etsi.mano.service.juju.entities.JujuRegion;
 import com.ubiqube.juju.service.ProcessResult;
 import com.ubiqube.juju.service.WorkspaceService;
 
@@ -27,17 +27,18 @@ import jakarta.validation.constraints.NotNull;
 
 @Validated
 @RestController("/")
+@SuppressWarnings("static-method")
 public class JujuController {
 
 	private static final Logger LOG = LoggerFactory.getLogger(JujuController.class);
 
 	@PostMapping(value = "/cloud", produces = "application/json")
 	public ResponseEntity<String> addCloud(@RequestBody @NotNull final JujuCloud cloud) {
-		LOG.info("calling POST /cloud with name={}, cloud type={}\n{}",cloud.getName(),cloud.getType(),cloud);
+		LOG.info("calling POST /cloud with name={}, cloud type={}\n{}", cloud.getName(), cloud.getType(), cloud);
 		try (final WorkspaceService ws = new WorkspaceService();) {
-			String cloudString = genCloudYml(cloud);
-		    InputStream is = new ByteArrayInputStream(cloudString.getBytes());
-			String filename = "openstack-play.yaml";
+			final String cloudString = genCloudYml(cloud);
+			final InputStream is = new ByteArrayInputStream(cloudString.getBytes());
+			final String filename = "openstack-play.yaml";
 			ws.pushPayload(is, filename);
 			LOG.info("{}: Call Install ", ws.getId());
 			final ProcessResult res = ws.addCloud(cloud.getName(), filename);
@@ -72,7 +73,7 @@ public class JujuController {
 
 	@DeleteMapping(value = "/cloud/{name}", produces = "application/json")
 	public ResponseEntity<String> removeCloud(@PathVariable("name") @NotNull final String name) {
-		LOG.info("calling DELETE /cloud with name: {}",name);
+		LOG.info("calling DELETE /cloud with name: {}", name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.removeCloud(name);
 			LOG.info(res.getStdout());
@@ -85,10 +86,10 @@ public class JujuController {
 	public ResponseEntity<String> addCredential(@RequestBody @NotNull final JujuCloud cloud) {
 		LOG.info("calling POST /credential with object: {}", cloud);
 		try (final WorkspaceService ws = new WorkspaceService();) {
-			String credentialString = genCredentialYml(cloud);
-		    InputStream is = new ByteArrayInputStream(credentialString.getBytes());
+			final String credentialString = genCredentialYml(cloud);
+			final InputStream is = new ByteArrayInputStream(credentialString.getBytes());
 			LOG.info("{}: Deploying payload.", ws.getId());
-			String filename = "mycreds.yaml";
+			final String filename = "mycreds.yaml";
 			ws.pushPayload(is, filename);
 
 			final ProcessResult res = ws.addCredential(cloud.getName(), filename);
@@ -109,7 +110,7 @@ public class JujuController {
 
 	@GetMapping(value = "/credential/{cloudname}/{name}", produces = "application/json")
 	public ResponseEntity<String> credentialDetails(@PathVariable("cloudname") @NotNull final String cloudname, @PathVariable("name") final String name) {
-		LOG.info("calling GET /credentialDetails with cloudname:{} and name=:{}",cloudname, name);
+		LOG.info("calling GET /credentialDetails with cloudname:{} and name=:{}", cloudname, name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.credentialDetail(cloudname, name);
 			LOG.info(res.getStdout());
@@ -122,10 +123,10 @@ public class JujuController {
 	public ResponseEntity<String> updateCredential(@RequestBody @NotNull final JujuCloud cloud) {
 		LOG.info("calling PUT /credential with object: {}", cloud);
 		try (final WorkspaceService ws = new WorkspaceService();) {
-			String credentialString = genCredentialYml(cloud);
-		    InputStream is = new ByteArrayInputStream(credentialString.getBytes());
+			final String credentialString = genCredentialYml(cloud);
+			final InputStream is = new ByteArrayInputStream(credentialString.getBytes());
 			LOG.info("{}: Deploying payload.", ws.getId());
-			String filename = "mycreds.yaml";
+			final String filename = "mycreds.yaml";
 			ws.pushPayload(is, filename);
 			final ProcessResult res = ws.updateCredential(cloud.getName(), filename);
 			return ResponseEntity.ok(res.getStdout());
@@ -134,7 +135,7 @@ public class JujuController {
 
 	@DeleteMapping(value = "/credential/{cloudname}/{name}", produces = "application/json")
 	public ResponseEntity<String> removeCredential(@PathVariable("cloudname") @NotNull final String cloudname, @PathVariable("name") final String name) {
-		LOG.info("calling DELETE /credential with cloudname:{} and name=:{}",cloudname, name);
+		LOG.info("calling DELETE /credential with cloudname:{} and name=:{}", cloudname, name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.removeCredential(cloudname, name);
 			LOG.info(res.getStdout());
@@ -204,7 +205,7 @@ public class JujuController {
 
 	@GetMapping(value = "/controller/{controllername}", produces = "application/json")
 	public ResponseEntity<String> controllerDetail(@PathVariable("controllername") @NotNull final String controllername) {
-		LOG.info("get /showController/{}",controllername);
+		LOG.info("get /showController/{}", controllername);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.showController(controllername);
 			LOG.info(res.getStdout());
@@ -215,9 +216,9 @@ public class JujuController {
 
 	@DeleteMapping(value = "/controller/{controllername}", produces = "application/json")
 	public ResponseEntity<String> removeController(@PathVariable("controllername") @NotNull final String controllername) {
-		LOG.info("delete /remove-controller/{}",controllername);
+		LOG.info("delete /remove-controller/{}", controllername);
 		try (final WorkspaceService ws = new WorkspaceService()) {
-		    InputStream is = new ByteArrayInputStream(controllername.getBytes());
+			final InputStream is = new ByteArrayInputStream(controllername.getBytes());
 			ws.pushPayload(is, "answer");
 			final ProcessResult res = ws.removeController(controllername);
 			LOG.info(res.getStdout());
@@ -250,7 +251,7 @@ public class JujuController {
 
 	@DeleteMapping(value = "/model/{name}", produces = "application/json")
 	public ResponseEntity<String> removeModel(@PathVariable("name") @NotNull final String name) {
-		LOG.info("delete /destroy-model/{}",name);
+		LOG.info("delete /destroy-model/{}", name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.removeModel(name);
 			LOG.info(res.getStdout());
@@ -261,7 +262,7 @@ public class JujuController {
 
 	@PostMapping(value = "/application/{charm}/{name}", produces = "application/json")
 	public ResponseEntity<String> deployApp(@PathVariable("charm") @NotNull final String charm, @PathVariable("name") @NotNull final String name) {
-		LOG.info("post /deploy/{}/{}",charm,name);
+		LOG.info("post /deploy/{}/{}", charm, name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.deployApp(charm, name);
 			LOG.info(res.getStdout());
@@ -272,7 +273,7 @@ public class JujuController {
 
 	@GetMapping(value = "/application/{name}", produces = "application/json")
 	public ResponseEntity<String> application(@PathVariable("name") @NotNull final String name) {
-		LOG.info("calling /show-application/{}",name);
+		LOG.info("calling /show-application/{}", name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.application(name);
 			LOG.info(res.getStdout());
@@ -283,7 +284,7 @@ public class JujuController {
 
 	@DeleteMapping(value = "/application/{name}", produces = "application/json")
 	public ResponseEntity<String> removeApplication(@PathVariable("name") @NotNull final String name) {
-		LOG.info("calling /remove-application/{}",name);
+		LOG.info("calling /remove-application/{}", name);
 		try (final WorkspaceService ws = new WorkspaceService()) {
 			final ProcessResult res = ws.removeApplication(name);
 			LOG.info(res.getStdout());
@@ -303,51 +304,41 @@ public class JujuController {
 		}
 	}
 
-	private String genCloudYml(JujuCloud cloud) {
-/*
-clouds:
-    openstack-cloud-240:
-      type: openstack
-      auth-types: [userpass]
-      regions:
-        RegionOne:
-          endpoint: http://10.31.1.240:5000/v3
-*/
-		StringBuilder str = new StringBuilder("clouds:\n");
-		str.append("    "+cloud.getName()+":\n");
+	private String genCloudYml(final JujuCloud cloud) {
+		/*
+		 * clouds: openstack-cloud-240: type: openstack auth-types: [userpass] regions:
+		 * RegionOne: endpoint: http://10.31.1.240:5000/v3
+		 */
+		final StringBuilder str = new StringBuilder("clouds:\n");
+		str.append("    " + cloud.getName() + ":\n");
 		str.append("      type: openstack\n");
 		str.append("      auth-types: [userpass]\n");
 		str.append("      regions:\n");
-		if (cloud.getRegions()!=null && !cloud.getRegions().isEmpty()) {
-			for (JujuRegion region: cloud.getRegions()) {
-				str.append("        "+region.getName()+":\n");
-				str.append("          endpoint: "+region.getEndPoint()+"\n");
+		if ((cloud.getRegions() != null) && !cloud.getRegions().isEmpty()) {
+			for (final JujuRegion region : cloud.getRegions()) {
+				str.append("        " + region.getName() + ":\n");
+				str.append("          endpoint: " + region.getEndPoint() + "\n");
 			}
 		}
-		LOG.info("CloudYaml:\n{}",str.toString());
+		LOG.info("CloudYaml:\n{}", str.toString());
 		return str.toString();
 	}
 
-	private String genCredentialYml(JujuCloud cloud) {
-/*
-credentials:
-  openstack-cloud-240: # .240 Openstack instance
-    admin:
-      auth-type: userpass
-      password: 13f83cb78a4f4213
-      tenant-name: admin
-      username: admin
-	
- */
-		JujuCredential credential = cloud.getCredential();
-		StringBuilder str = new StringBuilder("credentials:\n");
-		str.append("  "+cloud.getName()+":\n");
-		str.append("    "+credential.getName()+":\n");
-		str.append("      auth-type: "+credential.getAuthType()+"\n");
-		str.append("      password: "+credential.getPassword()+"\n");
-		str.append("      tenant-name: "+credential.getTenantName()+"\n");
-		str.append("      username: "+credential.getUsername()+"\n");
-		LOG.info("CredentialYaml:\n{}",str.toString());
+	private String genCredentialYml(final JujuCloud cloud) {
+		/*
+		 * credentials: openstack-cloud-240: # .240 Openstack instance admin: auth-type:
+		 * userpass password: 13f83cb78a4f4213 tenant-name: admin username: admin
+		 *
+		 */
+		final JujuCredential credential = cloud.getCredential();
+		final StringBuilder str = new StringBuilder("credentials:\n");
+		str.append("  " + cloud.getName() + ":\n");
+		str.append("    " + credential.getName() + ":\n");
+		str.append("      auth-type: " + credential.getAuthType() + "\n");
+		str.append("      password: " + credential.getPassword() + "\n");
+		str.append("      tenant-name: " + credential.getTenantName() + "\n");
+		str.append("      username: " + credential.getUsername() + "\n");
+		LOG.info("CredentialYaml:\n{}", str.toString());
 		return str.toString();
 	}
 

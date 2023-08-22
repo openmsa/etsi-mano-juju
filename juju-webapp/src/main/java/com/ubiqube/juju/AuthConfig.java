@@ -20,10 +20,11 @@ public class AuthConfig {
 //				.jwt();
 //		return http.build();
 //	}
-	
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
-            .requestMatchers("/**");
-    }
+
+	@SuppressWarnings("static-method")
+	@Bean
+	WebSecurityCustomizer webSecurityCustomizer() {
+		return web -> web.ignoring()
+				.requestMatchers("/**");
+	}
 }
