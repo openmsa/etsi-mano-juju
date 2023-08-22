@@ -1,10 +1,12 @@
 package com.ubiqube.juju.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileSystemUtils;
 
+import com.ubiqube.etsi.mano.dao.mano.juju.JujuMetadata;
 import com.ubiqube.juju.JujuException;
 
 import io.micrometer.common.util.StringUtils;
@@ -24,10 +27,14 @@ import io.micrometer.common.util.StringUtils;
 public class WorkspaceService implements AutoCloseable {
 
 	private static final Logger LOG = LoggerFactory.getLogger(WorkspaceService.class);
+	private static final String SWTH_JSON_FMT = "--format=json";
 
-	private static final String WORKSPACE_ROOT = "/tmp/workspace";
+	private static final String WORKSPACE_ROOT = "/home/workspace";
 	private File wsRoot;
-
+	
+//	private static final String WORKSPACE_ROOT2 = "/home/ubuntu/Workspace/playground";
+//	private File wsRoot2 = new File();
+	
 	private UUID id;
 
 	public WorkspaceService() {
@@ -46,76 +53,126 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult addCloud(final String cloudname, final String filename) {
 //		Command: juju add-cloud --local openstack-cloud openstack-cloud.yaml
-		final List<String> list = new ArrayList<>();
-		list.addAll(List.of("juju", "add-cloud", "--local", "openstack-cloud", filename));
-//		list.addAll(List.of("cat", filename)); // for local testing
+		final List<String> list = List.of("juju", "add-cloud", "--client", cloudname, filename);
+		LOG.info("{}",list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
 		return run(builder);
 	}
 
-	public String clouds() {
+	public ProcessResult clouds() {
 //		Command: juju clouds --local
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "clouds", "--local", "--format=json"));
-//		final ProcessBuilder builder = new ProcessBuilder(List.of("ls", "-alrt")); //for local testing
+		final List<String> list = List.of("juju", "clouds");
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
 	}
 
-	public String removeCloud(final String cloudname) {
-//		Command: juju remove-cloud --local <openstack-name> 
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "remove-cloud", "--local", cloudname));
+	public ProcessResult cloudDetail(final String cloudname) {
+//		Command: juju show-cloud <cloudname>
+		final List<String> list = List.of("juju", "show-cloud", cloudname);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
+	}
+
+	public ProcessResult removeCloud(final String cloudname) {
+//		Command: juju remove-cloud --local <openstack-name> 
+		final List<String> list = List.of("juju", "remove-cloud", "--client", cloudname);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
 	}
 	
 	public ProcessResult addCredential(final String cloudname, final String filename) {
-//		Command: juju add-credential <cloudname> -f <cred-file>
-		final List<String> list = new ArrayList<>();
-		list.addAll(List.of("juju", "add-credential", cloudname, "-f", filename));
+//		Command: juju add-credential --local <cloudname> -f <cred-file> i.e. juju add-credential --local openstack-inari-108 -f mycreds.yaml
+		final List<String> list = List.of("juju", "add-credential", cloudname, "-f "+filename);
+		LOG.info("{}",list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
 		return run(builder);
 	}
 
-	public String credentials() {
-//		Command: juju credentials --local
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "credentials", "--local", "--format=json"));
+	public ProcessResult credentials() {
+//		Command: juju credentials --local  
+		final List<String> list = List.of("juju", "credentials");
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
+	}
+
+	public ProcessResult credentialDetail(final String cloudname, final String name) {
+//		Command: juju credentials --local  
+		final List<String> list = List.of("juju", "show-credential", cloudname, name);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
 	}
 
 	public ProcessResult updateCredential(final String cloudname, final String filename) {
 //		Command: juju update-credential <cloudname> -f <cred-file> 
-		final List<String> list = new ArrayList<>();
-		list.addAll(List.of("juju", "update-credential", cloudname, "-f", filename));
+		final List<String> list = List.of("juju", "update-credential", cloudname, "-f", filename);
+		LOG.info("{}",list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
 		return run(builder);
 	}
 
-	public String removeCredential(final String cloudname, final String username) {
+	public ProcessResult removeCredential(final String cloudname, final String name) {
 //		Command: juju remove-credential <cloudname> <username>
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "remove-credential", cloudname, username));
+		final List<String> list = List.of("juju", "remove-credential", cloudname, name, "--client");
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
 	}
 
-	public String genMetadata(String path, String imageId, String osSeries, String region, String osAuthUrl) {
+	public ProcessResult genMetadata(String path, String imageId, String osSeries, String region, String osAuthUrl) {
 //		Command: juju metadata generate-image -d ~/simplestreams -i <IMAGE_ID> -s <OS_SERIES> -r <REGION> -u <OS_AUTH_URL>
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "metadata", "generate-image", "-d", path, "-i", imageId, "-s", osSeries, "-r", region, "-u", osAuthUrl));
+//		mkdir -p ~/simplestreams/images
+//		ie: juju metadata generate-image -d ~/simplestreams -i 0bc65ba0-6f27-4128-b596-79e6788e8574 -s jammy -r RegionOne -u  http://10.31.1.108:5000		
+		final List<String> list = List.of("juju", "metadata", "generate-image", "-d", path, "-i", imageId, "-s", osSeries, "-r", region, "-u", osAuthUrl);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
 	}
 
-	public String addController(String imageId, String osSeries, String constraints, String cloudname, String controllername, String region) {
+	public ProcessResult addController(String cloudname, JujuMetadata c) {
 //		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
 		final List<String> list = new ArrayList<>();
+		list.add("juju bootstrap");
+		list.add(cloudname);
+		list.add(c.getName());
+		if (StringUtils.isNotBlank(c.getImageId()))
+			list.add("--bootstrap-image="+c.getImageId());
+		if (StringUtils.isNotBlank(c.getOsSeries()))
+			list.add("--bootstrap-series="+c.getOsSeries());
+		if (c.getConstraints()!=null) {
+			StringBuilder sb = new StringBuilder();
+			for (String constraint : c.getConstraints()) {
+				sb.append(constraint+" ");
+			}
+			list.add("--bootstrap-constraints=\""+sb+"\"");
+		}
+		list.add("--model-default");
+		if (StringUtils.isNotBlank(c.getNetworkId()))
+			list.add("network="+c.getNetworkId());
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult addController(String imageId, String osSeries, String constraints, String cloudname, String controllername, String region, String networkId) {
+//		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
+		final List<String> list = new ArrayList<>();
+		list.add("juju bootstrap");
 		if (StringUtils.isNotBlank(imageId))
 			list.add("--bootstrap-image="+imageId);
 		if (StringUtils.isNotBlank(osSeries))
@@ -129,26 +186,102 @@ public class WorkspaceService implements AutoCloseable {
 		}
 		if (StringUtils.isNotBlank(controllername))
 			list.add(controllername);
+		list.add("--model-default");
+		if (StringUtils.isNotBlank(networkId))
+			list.add("network="+networkId);
+
+		LOG.info("{}",list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
 	}
 
-	public String controllers() {
+	public ProcessResult controllers() {
 //		Command: juju controllers --format=json
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "controllers", "--format=json"));
+		final List<String> list = List.of("juju", "controllers", SWTH_JSON_FMT);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
 	}
 
-	public String removeController(final String cloudname, final String username) {
+	public ProcessResult showController(final String controllername) {
+//		Command: juju show-controller [options] [<controller name> ...]
+		final List<String> list = List.of("juju", "show-controller", controllername);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		return run(builder);
+	}
+
+	public ProcessResult removeController(final String controllername) {
 //		Command: juju destroy-controller openstack-inari-108-controller --destroy-all-models
-		final ProcessBuilder builder = new ProcessBuilder(List.of("juju", "destroy-controller", cloudname, "--destroy-all-models"));
+		final List<String> list = List.of("juju", "destroy-controller", controllername, "--destroy-all-models<answer");
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		return run(builder);
+	}
+
+	public ProcessResult addModel(final String name) {
+//		Command: juju add-model k8s-ubi-model-kt
+		final List<String> list = List.of("juju", "add-model", name);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
-		final ProcessResult res = run(builder);
-		return res.getStdout();
+		return run(builder);
+	}
+
+	public ProcessResult model() {
+//		Command: juju models
+		final List<String> list = List.of("juju", "models", SWTH_JSON_FMT);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult removeModel(final String name) {
+//		Command: juju destroy-model <model>
+		final List<String> list = List.of("juju", "destroy-model", name);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult deployApp(final String charm, final String username) {
+//		Command: juju deploy kubernetes-core ubi-k8s-cluster
+		final List<String> list = List.of("juju", "deploy", charm, username);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult application(String name) {
+//		Command: juju show-application [options] <application name or alias>
+		final List<String> list = List.of("juju", "show-application", SWTH_JSON_FMT, name);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult removeApplication(String name) {
+//		Command: juju remove-application <application-name>
+		final List<String> list = List.of("juju", "remove-application", name);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult status() {
+//		Command: juju status --format=json
+		final List<String> list = List.of("juju", "status", SWTH_JSON_FMT);
+		LOG.info("{}",list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
 	}
 
 	public void pushPayload(final InputStream is, final String filename) {
@@ -158,6 +291,12 @@ public class WorkspaceService implements AutoCloseable {
 		} catch (final IOException e) {
 			throw new JujuException(e);
 		}
+	}
+
+	public void pushPayload(final String path, final String filename) {
+		final File file = new File(path, filename);
+		final File desc = new File(wsRoot, filename);
+		copyFile (file, desc);
 	}
 
 	private static ProcessResult run(final ProcessBuilder builder) {
@@ -187,5 +326,14 @@ public class WorkspaceService implements AutoCloseable {
 	@Override
 	public void close() {
 		FileSystemUtils.deleteRecursively(wsRoot);
+	}
+
+	private static void copyFile(File source, File dest) {
+		try (FileInputStream fis = new FileInputStream(source); FileOutputStream fos = new FileOutputStream(dest);
+				FileChannel sourceChannel = fis.getChannel(); FileChannel destChannel = fos.getChannel()) {
+			destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+		} catch (IOException e) {
+			throw new JujuException(e);
+		}
 	}
 }
