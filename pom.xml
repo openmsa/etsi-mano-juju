@@ -19,6 +19,7 @@
 	<modules>
 		<module>juju-webapp</module>
 		<module>juju-api</module>
+		<module>juju-client</module>
 	</modules>
 	<distributionManagement>
 		<snapshotRepository>
