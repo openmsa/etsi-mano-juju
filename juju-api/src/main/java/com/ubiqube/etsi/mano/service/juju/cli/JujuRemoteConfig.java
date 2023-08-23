@@ -46,7 +46,7 @@ public class JujuRemoteConfig {
 	}
 
 	@Bean
-	JujuRemoteService createAlarmClient(final JujuProperty props) {
+	JujuRemoteService createJujuClient(final JujuProperty props) {
 		final HttpServiceProxyFactory proxyFactory = createProxyFactory(props);
 		return proxyFactory.createClient(JujuRemoteService.class);
 	}
