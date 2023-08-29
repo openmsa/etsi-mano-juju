@@ -1,10 +1,39 @@
-debug: true
+#debug: true
 logging:
   level:
     root: INFO
     com:
       ubiqube:
         juju: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: ALWAYS
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  elastic:
+    metrics:
+      export:
+        host: http://mano-es:9200
+  info:
+    git:
+      mode: full
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+mano:  
+  config:
+    type: vnfm
 
 server:
   error:
@@ -18,9 +47,9 @@ server:
 #springdoc:
 #  api-docs:
 #    path: /api-docs
-springdoc:
-  swagger-ui:
-    path: /swagger-ui-custom.html
+#springdoc:
+#  swagger-ui:
+#    path: /swagger-ui-custom.html
 
 #spring:
 #  security:
