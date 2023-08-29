@@ -1,0 +1,7 @@
+      _ _   _     _ _   _ 
+     | | | | |   | | | | |
+  _  | | | | |_  | | | | |
+ | |_| | |_| | |_| | |_| |
+  \___/ \___/ \___/ \___/ 
+
+  JUJU webapp (${AnsiColor.224}Spring boot: ${spring-boot.version}${AnsiColor.DEFAULT})
