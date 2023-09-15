@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+	<springProperty scope="context" name="springAppName" source="spring.application.name"/>
+	<appender name="logstashNetworkAppender" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+		<destination>mano-logstash:5000</destination>
+		<!-- <encoder class="net.logstash.logback.encoder.LogstashEncoder"> </encoder> -->
+		<encoder
+			class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+			<providers>
+				<timestamp>
+					<timeZone>UTC</timeZone>
+				</timestamp>
+				<pattern>
+					<pattern>
+						{
+						"severity": "%level",
+						"service": "${springAppName:-}",
+						"trace": "%X{traceId:-}",
+						"span": "%X{spanId:-}",
+						"parent": "%X{parentId:-}",
+						"pid": "${PID:-}",
+						"thread": "%thread",
+						"class": "%logger",
+						"rest": "%message"
+						}
+					</pattern>
+				</pattern>
+			</providers>
+		</encoder>
+		<keepAliveDuration>5 minutes</keepAliveDuration>
+	</appender>
+
+	<root level="INFO">
+		<appender-ref ref="logstashNetworkAppender" />
+		<appender-ref ref="CONSOLE" />
+	</root>
+</configuration>

@@ -5,8 +5,15 @@ logging:
     com:
       ubiqube:
         juju: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
 
 management:
+  elastic:
+    metrics:
+      export:
+        host: http://mano-es:9200
+        index: mano-metrics-juju
   endpoint:
     health:
       show-details: ALWAYS
@@ -14,10 +21,6 @@ management:
     web:
       exposure:
         include: '*'
-  elastic:
-    metrics:
-      export:
-        host: http://mano-es:9200
   info:
     git:
       mode: full
