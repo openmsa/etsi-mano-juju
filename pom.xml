@@ -21,6 +21,9 @@
 		<module>juju-api</module>
 		<module>juju-client</module>
 	</modules>
+	<scm>
+		<developerConnection>scm:git:https://github.com/openmsa/etsi-mano-juju.git</developerConnection>
+	</scm>
 	<distributionManagement>
 		<snapshotRepository>
 			<id>nexus-snapshots</id>
