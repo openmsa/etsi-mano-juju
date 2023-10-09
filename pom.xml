@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.ubiqube.mano.juju</groupId>
 	<artifactId>mano-juju-aggregator</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>mano-juju-aggregator</name>
 	<description>JUJU aggregator module for ETSI-MANO project</description>
@@ -21,7 +21,7 @@
 	</modules>
 	<scm>
 		<developerConnection>scm:git:https://github.com/openmsa/etsi-mano-juju.git</developerConnection>
-	  <tag>mano-juju-aggregator-1.0.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 	<distributionManagement>
 		<snapshotRepository>
