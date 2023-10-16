@@ -1,5 +1,7 @@
 package com.ubiqube.juju.controller;
 
+import com.ubiqube.juju.JujuException;
+import com.ubiqube.juju.exception.JujuErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.ubiqube.juju.dto.ProblemDetails;
+import org.springframework.web.context.request.WebRequest;
+
+import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class JujuControllerAdvice {
@@ -34,5 +39,12 @@ public class JujuControllerAdvice {
 				.contentType(MediaType.APPLICATION_PROBLEM_JSON)
 				.body(problemDetail);
 	}
-
+	@ExceptionHandler(value = JujuException.class)
+	public final ResponseEntity<Object> handleCloudExceptions(JujuException jujuException, WebRequest request)
+	{
+//creating exception response structure
+		JujuErrorResponse exceptionResponse= new JujuErrorResponse(LocalDateTime.now(), "404",jujuException.getMessage(),request.getDescription(false) );
+//returning exception structure and specific status
+		return new ResponseEntity(exceptionResponse, HttpStatus.NOT_FOUND);
+	}
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
 import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
@@ -24,6 +25,7 @@ import com.ubiqube.juju.JujuException;
 
 import io.micrometer.common.util.StringUtils;
 
+@Service
 public class WorkspaceService implements AutoCloseable {
 
 	private static final Logger LOG = LoggerFactory.getLogger(WorkspaceService.class);
@@ -89,7 +91,7 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult addCredential(final String cloudname, final String filename) {
 //		Command: juju add-credential --local <cloudname> -f <cred-file> i.e. juju add-credential --local openstack-inari-108 -f mycreds.yaml
-		final List<String> list = List.of("juju", "add-credential", cloudname, "-f " + filename);
+		final List<String> list = List.of("juju", "add-credential", cloudname, "-f", filename, "--client");
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
@@ -116,7 +118,7 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult updateCredential(final String cloudname, final String filename) {
 //		Command: juju update-credential <cloudname> -f <cred-file>
-		final List<String> list = List.of("juju", "update-credential", cloudname, "-f", filename);
+		final List<String> list = List.of("juju", "update-credential", cloudname, "-f", filename, "--client");
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
@@ -146,9 +148,8 @@ public class WorkspaceService implements AutoCloseable {
 	public ProcessResult addController(final String cloudname, final JujuMetadata c) {
 //		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
 		final List<String> list = new ArrayList<>();
-		list.add("juju bootstrap");
-		list.add(cloudname);
-		list.add(c.getName());
+		list.add("juju");
+		list.add("bootstrap");	
 		if (StringUtils.isNotBlank(c.getImageId())) {
 			list.add("--bootstrap-image=" + c.getImageId());
 		}
@@ -159,16 +160,25 @@ public class WorkspaceService implements AutoCloseable {
 			final StringBuilder sb = new StringBuilder();
 			for (final String constraint : c.getConstraints()) {
 				sb.append(constraint + " ");
+				LOG.info("string builder result", sb.toString());
+				LOG.info("get constraint result", c.getConstraints());
 			}
-			list.add("--bootstrap-constraints=\"" + sb + "\"");
+			list.add("--bootstrap-constraints="+sb.toString().trim());
+			
+			//list.add("--bootstrap-constraints=\"arch=amd64\"");
 		}
+		list.add(cloudname);
+		list.add(c.getName());
 		list.add("--model-default");
 		if (StringUtils.isNotBlank(c.getNetworkId())) {
 			list.add("network=" + c.getNetworkId());
 		}
+		//list.add("--debug");
+		//list.add("--verbose");
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
-		builder.directory(wsRoot);
+//		builder.directory(wsRoot);
+		builder.directory(new File(WORKSPACE_ROOT));
 		return run(builder);
 	}
 
@@ -224,7 +234,7 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult removeController(final String controllername) {
 //		Command: juju destroy-controller openstack-inari-108-controller --destroy-all-models
-		final List<String> list = List.of("juju", "destroy-controller", controllername, "--destroy-all-models<answer");
+		final List<String> list = List.of("juju", "destroy-controller", "--destroy-all-models","--no-prompt", controllername);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		return run(builder);
@@ -250,7 +260,7 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult removeModel(final String name) {
 //		Command: juju destroy-model <model>
-		final List<String> list = List.of("juju", "destroy-model", name);
+		final List<String> list = List.of("juju", "destroy-model", "--no-prompt",name);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
@@ -277,7 +287,7 @@ public class WorkspaceService implements AutoCloseable {
 
 	public ProcessResult removeApplication(final String name) {
 //		Command: juju remove-application <application-name>
-		final List<String> list = List.of("juju", "remove-application", name);
+		final List<String> list = List.of("juju", "remove-application","--force","--no-wait","--no-prompt", name);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
