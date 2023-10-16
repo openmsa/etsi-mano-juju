@@ -208,7 +208,12 @@ public class JujuController {
 		LOG.info("Proceess result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		return ResponseEntity.ok(res.getStdout());
+		if(res.getExitCode()==0) {
+			return ResponseEntity.ok(res.getErrout());
+			}
+			else {
+				throw new JujuException(res.getErrout()) ;
+			}
 	}
 
 	@GetMapping(value = "/controller", produces = "application/json")
