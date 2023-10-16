@@ -2,6 +2,7 @@ package com.ubiqube.juju;
 
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCloud;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCredential;
+import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
 import com.ubiqube.juju.controller.JujuController;
 import com.ubiqube.juju.service.ProcessResult;
 import com.ubiqube.juju.service.WorkspaceService;
@@ -20,6 +21,9 @@ public class JujuControllerTest {
 
 @Mock
 JujuCloud jujuCloud;
+
+@Mock
+JujuMetadata jujuMetadata;
 
 @Mock
 WorkspaceService ws;
@@ -380,6 +384,39 @@ JujuController jujuController;
 
     }
 
+    @Test
+    public void test_add_Controllers() throws Exception {
+
+        ProcessResult res = ProcessResult.builder().exitCode(0).stdout("").errout("Bootstrap complete, controller \"openstack-inari-test-controller\" is now available\n"
+        		+ "Controller machines are in the \"controller\" model\n"
+        		+ "\n"
+        		+ "Now you can run\n"
+        		+ "        juju add-model <model-name>\n"
+        		+ "to create a new model to deploy workloads.\n"
+        		+ "").build();
+
+        Mockito.when(ws.addController(Mockito.anyString(),Mockito.any())).thenReturn(res);
+        jujuController.addController("openstack-inari-testcloud",jujuMetadata);
+        assertTrue(true);
+     }
+    
+    @Test
+    public void test_add_Controllers_when_JujuException_throws() throws Exception {
+
+        ProcessResult res = ProcessResult.builder().exitCode(1).stdout("").errout("ERROR unknown cloud \"openstack-inari-testcloud\", please try \"juju update-public-clouds\"\n"
+        		+ "").build();
+
+        Mockito.when(ws.addController(Mockito.anyString(),Mockito.any())).thenReturn(res);
+        
+        Exception exception = assertThrows(JujuException.class, () -> {
+        	jujuController.addController("openstack-inari-testcloud",jujuMetadata);
+        	});
+
+        String expectedMsg = "openstack-inari-testcloud";
+        String actualMsg = exception.getMessage();
+        assertTrue(actualMsg.contains(expectedMsg));
+     }
+    
     @Test
     public void test_getControllers() throws Exception {
 

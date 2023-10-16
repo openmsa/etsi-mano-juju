@@ -160,12 +160,8 @@ public class WorkspaceService implements AutoCloseable {
 			final StringBuilder sb = new StringBuilder();
 			for (final String constraint : c.getConstraints()) {
 				sb.append(constraint + " ");
-				LOG.info("string builder result", sb.toString());
-				LOG.info("get constraint result", c.getConstraints());
 			}
 			list.add("--bootstrap-constraints="+sb.toString().trim());
-			
-			//list.add("--bootstrap-constraints=\"arch=amd64\"");
 		}
 		list.add(cloudname);
 		list.add(c.getName());
@@ -173,11 +169,8 @@ public class WorkspaceService implements AutoCloseable {
 		if (StringUtils.isNotBlank(c.getNetworkId())) {
 			list.add("network=" + c.getNetworkId());
 		}
-		//list.add("--debug");
-		//list.add("--verbose");
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
-//		builder.directory(wsRoot);
 		builder.directory(new File(WORKSPACE_ROOT));
 		return run(builder);
 	}
