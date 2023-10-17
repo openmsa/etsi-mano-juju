@@ -32,9 +32,12 @@ import jakarta.validation.constraints.NotNull;
 @SuppressWarnings("static-method")
 public class JujuController {
 
-	@Autowired
-	WorkspaceService ws;
 	private static final Logger LOG = LoggerFactory.getLogger(JujuController.class);
+	private final WorkspaceService ws;
+
+	public JujuController(final WorkspaceService ws) {
+		this.ws = ws;
+	}
 
 	@PostMapping(value = "/cloud", produces = "application/json")
 	public ResponseEntity<String> addCloud(@RequestBody @NotNull final JujuCloud cloud) {
