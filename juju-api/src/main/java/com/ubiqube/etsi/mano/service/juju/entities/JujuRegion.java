@@ -17,20 +17,37 @@
 package com.ubiqube.etsi.mano.service.juju.entities;
 
 import java.io.Serializable;
+import java.util.UUID;
 
-import lombok.Builder;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @ToString
-@Builder
+@Entity
+@Table(name = "juju_regions")
 public class JujuRegion implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	public JujuRegion(String name, String endPoint) {
+		this.name = name;
+		this.endPoint = endPoint;
+	}
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private UUID id;
+
 	private String name;
 	private String endPoint;
-
 }

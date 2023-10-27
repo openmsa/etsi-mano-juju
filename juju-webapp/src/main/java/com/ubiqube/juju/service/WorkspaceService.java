@@ -169,7 +169,7 @@ public class WorkspaceService implements AutoCloseable {
 		if (StringUtils.isNotBlank(c.getNetworkId())) {
 			list.add("network=" + c.getNetworkId());
 		}
-		LOG.info("{}", list);
+		LOG.info("{}", list);		
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(new File(WORKSPACE_ROOT));
 		return run(builder);
@@ -226,8 +226,8 @@ public class WorkspaceService implements AutoCloseable {
 	}
 
 	public ProcessResult removeController(final String controllername) {
-//		Command: juju destroy-controller openstack-inari-108-controller --destroy-all-models
-		final List<String> list = List.of("juju", "destroy-controller", "--destroy-all-models","--no-prompt", controllername);
+//		Command: juju destroy-controller --destroy-all-models --force --no-prompt openstack-inari-108-controller 
+		final List<String> list = List.of("juju", "destroy-controller", "--destroy-all-models", "--force", "--no-prompt", controllername);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		return run(builder);
@@ -251,6 +251,14 @@ public class WorkspaceService implements AutoCloseable {
 		return run(builder);
 	}
 
+	public ProcessResult showModel(final String modelname) {
+//		Command: juju show-model [options] [<model name> ...]
+		final List<String> list = List.of("juju", "show-model", modelname);
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		return run(builder);
+	}
+	
 	public ProcessResult removeModel(final String name) {
 //		Command: juju destroy-model <model>
 		final List<String> list = List.of("juju", "destroy-model", "--no-prompt",name);
