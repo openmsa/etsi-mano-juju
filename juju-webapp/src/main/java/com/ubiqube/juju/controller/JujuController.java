@@ -6,7 +6,7 @@ import java.io.InputStream;
 import com.ubiqube.juju.JujuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,9 +32,12 @@ import jakarta.validation.constraints.NotNull;
 @SuppressWarnings("static-method")
 public class JujuController {
 
-	@Autowired
-	WorkspaceService ws;
 	private static final Logger LOG = LoggerFactory.getLogger(JujuController.class);
+	private final WorkspaceService ws;
+
+	public JujuController(final WorkspaceService ws) {
+		this.ws = ws;
+	}
 
 	@PostMapping(value = "/cloud", produces = "application/json")
 	public ResponseEntity<String> addCloud(@RequestBody @NotNull final JujuCloud cloud) {
@@ -45,21 +48,18 @@ public class JujuController {
 		ws.pushPayload(is, filename);
 		LOG.info("{}: Call Install ", ws.getId());
 		final ProcessResult res = ws.addCloud(cloud.getName(), filename);
+		LOG.info("process result"+res);
 		LOG.info("{}: add-cloud done.", ws.getId());
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==1){
-			throw new JujuException(res.getErrout());
-		}
-		else {
-			return ResponseEntity.ok(res.getErrout());
-		}
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@GetMapping(value = "/cloud", produces = "application/json")
 	public ResponseEntity<String> clouds() {
 		LOG.info("calling GET /cloud");
 		final ProcessResult res = ws.clouds();
+		LOG.info("process result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
 		return ResponseEntity.ok(res.getStdout());
@@ -69,30 +69,23 @@ public class JujuController {
 	public ResponseEntity<String> cloudDetail(@PathVariable("name") @NotNull final String name) {
 		LOG.info("calling GET /cloud");
 		final ProcessResult res = ws.cloudDetail(name);
+		LOG.info("process result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
 		if(res.getExitCode()==1){
-			throw new JujuException(res.getErrout());
+			return ResponseEntity.ok(res.getErrout());
 		}
-		else{
-			return ResponseEntity.ok(res.getStdout());
-		}
+		return ResponseEntity.ok(res.getStdout());
 	}
 
 	@DeleteMapping(value = "/cloud/{name}", produces = "application/json")
 	public ResponseEntity<String> removeCloud(@PathVariable("name") @NotNull final String name) {
 		LOG.info("calling DELETE /cloud with name: {}", name);
-		final ProcessResult res = ws.cloudDetail(name);
-		final ProcessResult res2 = ws.removeCloud(name);
-		LOG.info(res2.getStdout());
-		LOG.error(res2.getErrout());
-		if(res.getExitCode()==1){
-			throw new JujuException(res.getErrout());
-		}
-		else{
-			
-			return ResponseEntity.ok(res2.getErrout());
-		}
+		final ProcessResult res = ws.removeCloud(name);
+		LOG.info("process result"+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@PostMapping(value = "/credential", produces = "application/json")
@@ -104,16 +97,18 @@ public class JujuController {
 		final String filename = "mycreds.yaml";
 		ws.pushPayload(is, filename);
 		final ProcessResult res = ws.addCredential(cloud.getName(), filename);
-		if(res.getExitCode()==1){
-			throw new JujuException(res.getErrout());
+		LOG.info("process result"+res);
+		if(res.getExitCode()==0) {
+			return new ResponseEntity<>(res.getStdout(),HttpStatus.CREATED);
 		}
-		return ResponseEntity.ok(res.getStdout());
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@GetMapping(value = "/credential", produces = "application/json")
 	public ResponseEntity<String> credentials() {
 		LOG.info("calling GET /credential");
 		final ProcessResult res = ws.credentials();
+		LOG.info("process result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
 		return ResponseEntity.ok(res.getStdout());
@@ -122,18 +117,19 @@ public class JujuController {
 	@GetMapping(value = "/credential/{cloudname}/{name}", produces = "application/json")
 	public ResponseEntity<String> credentialDetails(@PathVariable("cloudname") @NotNull final String cloudname, @PathVariable("name") final String name) {
 		LOG.info("calling GET /credentialDetails with cloudname:{} and name=:{}", cloudname, name);
-		final ProcessResult res = ws.credentialDetail(cloudname, name);
-		final ProcessResult res2 = ws.cloudDetail(cloudname);
-		LOG.info(res.getStdout());
-		LOG.error(res.getErrout());
-		if(res2.getExitCode()==1){
-			throw new JujuException(res2.getErrout());
-		}
-		else if (res2.getExitCode()==0 && res.getStdout().isEmpty()) {
-			throw new JujuException(res.getErrout());
-		}
-		else{
-			return ResponseEntity.ok(res.getStdout());
+		final ProcessResult res1 = ws.cloudDetail(cloudname);
+		LOG.info("process result1"+res1);
+		if (res1.getExitCode() == 1) {
+			return ResponseEntity.ok(res1.getErrout());
+		} else {
+			final ProcessResult res2 = ws.credentialDetail(cloudname, name);
+			LOG.info("process result2" + res2);
+			LOG.info(res2.getStdout());
+			LOG.error(res2.getErrout());
+			if (res2.getStdout().isEmpty()) {
+				return ResponseEntity.ok(res2.getErrout());
+			}
+			return ResponseEntity.ok(res2.getStdout());
 		}
 	}
 
@@ -146,29 +142,21 @@ public class JujuController {
 		final String filename = "mycreds.yaml";
 		ws.pushPayload(is, filename);
 		final ProcessResult res = ws.updateCredential(cloud.getName(), filename);
+		LOG.info("process result"+res);
 		if(res.getExitCode()==1){
-			throw new JujuException(res.getErrout());
+			return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 		}
-		return ResponseEntity.ok(res.getErrout());
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@DeleteMapping(value = "/credential/{cloudname}/{name}", produces = "application/json")
 	public ResponseEntity<String> removeCredential(@PathVariable("cloudname") @NotNull final String cloudname, @PathVariable("name") final String name) {
 		LOG.info("calling DELETE /credential with cloudname:{} and name=:{}", cloudname, name);
-		final ProcessResult res1 = ws.cloudDetail(cloudname);
-		final ProcessResult res2 = ws.credentialDetail(cloudname, name);
-		if(res1.getExitCode()==1){
-			throw new JujuException(res1.getErrout());
-		}
-		else if (res2.getStdout().isEmpty()) {
-			throw new JujuException(res2.getErrout());
-		}
-		else{
-			final ProcessResult res3 = ws.removeCredential(cloudname, name);
-			LOG.info(res3.getStdout());
-			LOG.error(res3.getErrout());
-			return ResponseEntity.ok(res3.getErrout());
-		}
+		final ProcessResult res = ws.removeCredential(cloudname, name);
+		LOG.info("process result"+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	public ResponseEntity<String> addMetadata(@RequestParam("path") @NotNull final String path,
@@ -208,12 +196,7 @@ public class JujuController {
 		LOG.info("Proceess result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
-			return ResponseEntity.ok(res.getErrout());
-			}
-			else {
-				throw new JujuException(res.getErrout()) ;
-			}
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@GetMapping(value = "/controller", produces = "application/json")
@@ -233,12 +216,10 @@ public class JujuController {
 		LOG.info("Proceess result"+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
-		return ResponseEntity.ok(res.getStdout());
+		if (res.getExitCode() == 0) {
+			return ResponseEntity.ok(res.getStdout());
 		}
-		else {
-			throw new JujuException(res.getErrout()) ;
-		}
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@DeleteMapping(value = "/controller/{controllername}", produces = "application/json")
@@ -248,12 +229,7 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {		
-			return ResponseEntity.ok(res.getErrout());
-			}
-			else {
-				throw new JujuException(res.getErrout()) ;
-			}
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@PostMapping(value = "/model/{name}", produces = "application/json")
@@ -263,12 +239,7 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
-		return ResponseEntity.ok(res.getErrout());
-		}
-		else {
-			throw new JujuException(res.getErrout()) ;
-		}
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@GetMapping(value = "/model", produces = "application/json")
@@ -281,6 +252,19 @@ public class JujuController {
 		return ResponseEntity.ok(res.getStdout());
 	}
 
+	@GetMapping(value = "/model/{modelname}", produces = "application/json")
+	public ResponseEntity<String> modelDetail(@PathVariable("modelname") @NotNull final String modelname) {
+		LOG.info("get /showController/{}", modelname);
+		final ProcessResult res = ws.showModel(modelname);
+		LOG.info("Proceess result"+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		if(res.getExitCode()==0) {
+			return ResponseEntity.ok(res.getStdout());
+		}
+		return ResponseEntity.ok(res.getErrout());
+	}
+
 	@DeleteMapping(value = "/model/{name}", produces = "application/json")
 	public ResponseEntity<String> removeModel(@PathVariable("name") @NotNull final String name) {
 		LOG.info("delete /destroy-model/{}", name);
@@ -288,12 +272,7 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
-			return ResponseEntity.ok(res.getErrout());
-			}
-			else {
-				throw new JujuException(res.getErrout()) ;
-			}
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@PostMapping(value = "/application/{charm}/{name}", produces = "application/json")
@@ -303,7 +282,7 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		return ResponseEntity.ok(res.getStdout());
+		return new ResponseEntity<>(res.getErrout(),HttpStatus.CREATED);
 	}
 
 	@GetMapping(value = "/application/{name}", produces = "application/json")
@@ -313,12 +292,10 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
+		if (res.getExitCode() == 0) {
 			return ResponseEntity.ok(res.getStdout());
-			}
-			else {
-				throw new JujuException(res.getErrout()) ;
-			}
+		}
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@DeleteMapping(value = "/application/{name}", produces = "application/json")
@@ -328,12 +305,10 @@ public class JujuController {
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==0) {
+		if (res.getExitCode() == 0) {
 			return ResponseEntity.ok(res.getStdout());
-			}
-			else {
-				throw new JujuException(res.getErrout()) ;
-			}
+		}
+		return ResponseEntity.ok(res.getErrout());
 	}
 
 	@GetMapping(value = "/status", produces = "application/json")

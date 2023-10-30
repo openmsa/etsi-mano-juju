@@ -149,7 +149,7 @@ public class WorkspaceService implements AutoCloseable {
 //		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
 		final List<String> list = new ArrayList<>();
 		list.add("juju");
-		list.add("bootstrap");	
+		list.add("bootstrap");
 		if (StringUtils.isNotBlank(c.getImageId())) {
 			list.add("--bootstrap-image=" + c.getImageId());
 		}
@@ -226,8 +226,8 @@ public class WorkspaceService implements AutoCloseable {
 	}
 
 	public ProcessResult removeController(final String controllername) {
-//		Command: juju destroy-controller openstack-inari-108-controller --destroy-all-models
-		final List<String> list = List.of("juju", "destroy-controller", "--destroy-all-models","--no-prompt", controllername);
+//		Command: juju destroy-controller --destroy-all-models --force --no-prompt openstack-inari-108-controller
+		final List<String> list = List.of("juju", "destroy-controller", "--destroy-all-models", "--force", "--no-prompt", controllername);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		return run(builder);
@@ -248,6 +248,14 @@ public class WorkspaceService implements AutoCloseable {
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult showModel(final String modelname) {
+//		Command: juju show-model [options] [<model name> ...]
+		final List<String> list = List.of("juju", "show-model", modelname);
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
 		return run(builder);
 	}
 
@@ -316,7 +324,7 @@ public class WorkspaceService implements AutoCloseable {
 		try {
 			final Process process = builder.start();
 			try (InputStream stdIn = process.getInputStream();
-					InputStream stdErr = process.getErrorStream()) {
+				 InputStream stdErr = process.getErrorStream()) {
 				final Future<String> out = tp.submit(new StreamGobbler(stdIn));
 				final Future<String> err = tp.submit(new StreamGobbler(stdErr));
 				final int exitCode = process.waitFor();
@@ -342,9 +350,9 @@ public class WorkspaceService implements AutoCloseable {
 
 	private static void copyFile(final File source, final File dest) {
 		try (FileInputStream fis = new FileInputStream(source);
-				FileOutputStream fos = new FileOutputStream(dest);
-				FileChannel sourceChannel = fis.getChannel();
-				FileChannel destChannel = fos.getChannel()) {
+			 FileOutputStream fos = new FileOutputStream(dest);
+			 FileChannel sourceChannel = fis.getChannel();
+			 FileChannel destChannel = fos.getChannel()) {
 			destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
 		} catch (final IOException e) {
 			throw new JujuException(e);
