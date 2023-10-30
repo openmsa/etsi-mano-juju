@@ -17,6 +17,7 @@
 package com.ubiqube.etsi.mano.service.juju.cli;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.DeleteExchange;
@@ -28,6 +29,7 @@ import org.springframework.web.service.annotation.PutExchange;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCloud;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
 
+@Service
 @HttpExchange(url = "/juju", accept = "application/json", contentType = "application/json")
 public interface JujuRemoteService {
 
@@ -36,6 +38,10 @@ public interface JujuRemoteService {
 
 	@PostExchange("/cloud")
 	ResponseEntity<String> addCloud(@RequestBody final JujuCloud cloud);
+
+	@GetExchange("/cloud/{cloudname}")
+	ResponseEntity<String> cloudDetail(@PathVariable("cloudname") final String cloudname);
+
 
 	@DeleteExchange("/cloud/{cloudname}")
 	ResponseEntity<String> removeCloud(@PathVariable("cloudname") final String cloudname);
@@ -48,6 +54,10 @@ public interface JujuRemoteService {
 
 	@PutExchange("/credential")
 	ResponseEntity<String> updateCredential(@RequestBody final JujuCloud cloud);
+
+	@GetExchange("/credential/{cloudname}/{credname}")
+	ResponseEntity<String> credentialDetails(@PathVariable("cloudname") final String cloudname, @PathVariable("credname") final String credname);
+
 
 	@DeleteExchange("/credential/{cloudname}/{name}")
 	ResponseEntity<String> removeCredential(@PathVariable("cloudname") final String cloudname, @PathVariable("name") final String name);
@@ -72,6 +82,9 @@ public interface JujuRemoteService {
 	@GetExchange("/controller")
 	ResponseEntity<String> controllers();
 
+	@GetExchange("/controller/{controllername}")
+	ResponseEntity<String> controllerDetail(@PathVariable("controllername") final String controllername);
+
 	@DeleteExchange("/controller/{controllername}")
 	ResponseEntity<String> removeController(@PathVariable("controllername") final String controllername);
 
@@ -80,6 +93,10 @@ public interface JujuRemoteService {
 
 	@GetExchange("/model")
 	ResponseEntity<String> model();
+
+	@GetExchange("/model/{name}")
+	ResponseEntity<String> modelDetail(@PathVariable("name") final String name);
+
 
 	@DeleteExchange("/model/{name}")
 	ResponseEntity<String> removeModel(@PathVariable("name") final String name);

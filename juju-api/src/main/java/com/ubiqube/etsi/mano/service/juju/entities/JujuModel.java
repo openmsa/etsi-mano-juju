@@ -17,21 +17,39 @@
 package com.ubiqube.etsi.mano.service.juju.entities;
 
 import java.io.Serializable;
+import java.util.UUID;
 
-import lombok.Builder;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
 @ToString
+@Entity
+@Table(name = "juju_models")
 public class JujuModel implements Serializable {
 	private static final long serialVersionUID = 1L;
+
+	public JujuModel(String name, String charmName, String appName) {
+		super();
+		this.name = name;
+		this.charmName = charmName;
+		this.appName = appName;
+	}
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private UUID id;
 
 	private String name;
 	private String charmName;
 	private String appName;
-
 }

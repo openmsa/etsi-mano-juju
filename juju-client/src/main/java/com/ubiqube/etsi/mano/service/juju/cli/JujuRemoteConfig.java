@@ -16,6 +16,8 @@
  */
 package com.ubiqube.etsi.mano.service.juju.cli;
 
+import java.time.Duration;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +60,6 @@ public class JujuRemoteConfig {
 		webBuilder.observationRegistry(observationRegistry);
 		final WebClient client = webBuilder
 				.build();
-		return HttpServiceProxyFactory.builder(WebClientAdapter.forClient(client)).build();
+		return HttpServiceProxyFactory.builder(WebClientAdapter.forClient(client)).blockTimeout(Duration.ofMinutes(30)).build();
 	}
-
 }
