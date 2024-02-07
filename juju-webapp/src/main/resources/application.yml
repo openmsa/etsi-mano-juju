@@ -36,7 +36,7 @@ management:
 
 mano:  
   config:
-    type: vnfm
+    type: juju
 
 server:
   error:
