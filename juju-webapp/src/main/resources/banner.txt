@@ -4,4 +4,5 @@
  | |_| | |_| | |_| | |_| |
   \___/ \___/ \___/ \___/ 
 
-  JUJU webapp (${AnsiColor.224}Spring boot: ${spring-boot.version}${AnsiColor.DEFAULT})
+  ${application.title}: ${application.formatted-version}
+  (${AnsiColor.224}Spring boot: ${AnsiStyle.BOLD}${AnsiStyle.ITALIC}${spring-boot.version}${AnsiColor.DEFAULT}${AnsiStyle.NORMAL})
