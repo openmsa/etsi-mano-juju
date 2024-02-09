@@ -36,6 +36,7 @@
 	<properties>
 		<sonar.jacoco.xmlReportPaths>${project.basedir}/../target/site/jacoco-aggregate/jacoco.xml</sonar.jacoco.xmlReportPaths>
 		<java.version>17</java.version>
+		<version.springdoc>2.3.0</version.springdoc>
 	</properties>
 	<build>
 		<plugins>
