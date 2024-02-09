@@ -47,5 +47,10 @@ server:
   servlet:
     contextPath: /juju
 
+spring:
+  output:
+    ansi:
+      enabled: always
+
 springdoc:
   enable-data-rest: false
