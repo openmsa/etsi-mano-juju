@@ -309,19 +309,19 @@ public class WorkspaceService implements AutoCloseable {
 	public boolean isK8sReady() {
 		ProcessResult result = status();
 		LOG.info("isK8sReady result", result.getStdout());
-        try {
-        	JSONObject jsondata = new JSONObject(result.getStdout());
-        	JSONObject applications = jsondata.getJSONObject("applications");
-        	for (String appName : applications.keySet()) {
-                JSONObject application = applications.getJSONObject(appName);
-                JSONObject appStatus = application.getJSONObject("application-status");
+		try {
+			JSONObject jsondata = new JSONObject(result.getStdout());
+			JSONObject applications = jsondata.getJSONObject("applications");
+			for (String appName : applications.keySet()) {
+				JSONObject application = applications.getJSONObject(appName);
+				JSONObject appStatus = application.getJSONObject("application-status");
 
-                // Get the "current" status and compare with "active"
-                String currentStatus = appStatus.getString("current");
-                if (!"active".equalsIgnoreCase(currentStatus)) {
-                    return false; // If any application is not active, return false
-                }
-            }
+				// Get the "current" status and compare with "active"
+				String currentStatus = appStatus.getString("current");
+				if (!"active".equalsIgnoreCase(currentStatus)) {
+					return false; // If any application is not active, return false
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -345,10 +345,10 @@ public class WorkspaceService implements AutoCloseable {
 		builder.directory(wsRoot);
 		return run(builder);
 	}
-	
+
 	public ProcessResult helmInstall(final String helmName, final String fileName) {
 //		Command: helm install myhelm ./mydb-0.1.0.tgz
-		String filePath = "./"+fileName;
+		String filePath = "./" + fileName;
 		final List<String> list = List.of("helm", "install", helmName, filePath);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
@@ -356,7 +356,6 @@ public class WorkspaceService implements AutoCloseable {
 		return run(builder);
 	}
 
-	
 	public ProcessResult helmUninstall(final String helmName) {
 //		Command: helm uninstall myhelm
 		final List<String> list = List.of("helm", "uninstall", helmName);
@@ -367,7 +366,7 @@ public class WorkspaceService implements AutoCloseable {
 	}
 
 	public ProcessResult raw(final String cmd) {
-		String [] tmp = cmd.split(" ");
+		String[] tmp = cmd.split(" ");
 		final List<String> list = Arrays.asList(tmp);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);

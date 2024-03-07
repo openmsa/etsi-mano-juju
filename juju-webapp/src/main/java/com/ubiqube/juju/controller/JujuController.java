@@ -336,64 +336,66 @@ public class JujuController {
 	public ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename) {
 		LOG.info("post /kubeconfig");
 		final ProcessResult res = ws.kubeConfig();
-		LOG.info("Proceess result1 "+res);
+		LOG.info("Proceess result1 " + res);
 		LOG.info(res.getStdout());
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(new FileWriter(filename));
-		    writer.write(res.getStdout());
-		    writer.close();
+			writer.write(res.getStdout());
+			writer.close();
 		} catch (IOException ioe) {
 			return ResponseEntity.ok(ioe.getMessage());
 		}
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==1) {
+		if (res.getExitCode() == 1) {
 			return ResponseEntity.ok(res.getErrout());
 		}
-		return new ResponseEntity<>(res.getStdout(),HttpStatus.CREATED);
+		return new ResponseEntity<>(res.getStdout(), HttpStatus.CREATED);
 	}
 
 	@PostMapping(value = "/helminstall/{helmName}", produces = "application/json", consumes = { "multipart/form-data" })
-	public ResponseEntity<String> helmInstall(@PathVariable("helmName") @NotNull final String helmName, @RequestParam("file") MultipartFile tgzfile) {
+	public ResponseEntity<String> helmInstall(@PathVariable("helmName") @NotNull final String helmName,
+			@RequestParam("file") MultipartFile tgzfile) {
 		LOG.info("post /helminstall");
 		try {
 			final InputStream is = new ByteArrayInputStream(tgzfile.getBytes());
-			final String filename = helmName+".tgz";
+			final String filename = helmName + ".tgz";
 			ws.pushPayload(is, filename);
 			final ProcessResult res = ws.helmInstall(helmName, filename);
-			LOG.info("Proceess result1 "+res);
+			LOG.info("Proceess result1 " + res);
 			LOG.info(res.getStdout());
 			LOG.error(res.getErrout());
-			if(res.getExitCode()==1) {
+			if (res.getExitCode() == 1) {
 				return ResponseEntity.ok(res.getErrout());
 			}
-			return new ResponseEntity<>(res.getStdout(),HttpStatus.OK);
+			return new ResponseEntity<>(res.getStdout(), HttpStatus.OK);
 		} catch (IOException e) {
 			throw new JujuException(e);
-		}	
+		}
 	}
-	
+
 	@PostMapping(value = "/helminstall2/{helmName}", produces = "application/json")
-	public ResponseEntity<String> helmInstall2(@PathVariable("helmName") @NotNull final String helmName, @RequestBody @NotNull final String filename) {
+	public ResponseEntity<String> helmInstall2(@PathVariable("helmName") @NotNull final String helmName,
+			@RequestBody @NotNull final String filename) {
 		LOG.info("post /helminstall2");
-			final ProcessResult res = ws.helmInstall(helmName, filename);
-			LOG.info("Proceess result1 "+res);
-			LOG.info(res.getStdout());
-			LOG.error(res.getErrout());
-			if(res.getExitCode()==1) {
-				return ResponseEntity.ok(res.getErrout());
-			}
-			return new ResponseEntity<>(res.getStdout(),HttpStatus.CREATED);	
+		final ProcessResult res = ws.helmInstall(helmName, filename);
+		LOG.info("Proceess result1 " + res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		if (res.getExitCode() == 1) {
+			return ResponseEntity.ok(res.getErrout());
+		}
+		return new ResponseEntity<>(res.getStdout(), HttpStatus.CREATED);
 	}
-	
+
 	@GetMapping(value = "/helmlist", produces = "application/json")
 	public ResponseEntity<String> helmList() {
 		LOG.info("calling /helmlist");
 		final ProcessResult res = ws.helmList();
-		LOG.info("Proceess result1 "+res);
+		LOG.info("Proceess result1 " + res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
-		if(res.getExitCode()==1) {
+		if (res.getExitCode() == 1) {
 			return ResponseEntity.ok(res.getErrout());
 		}
 		return ResponseEntity.ok(res.getStdout());
@@ -403,7 +405,7 @@ public class JujuController {
 	public ResponseEntity<String> helmUninstall(@PathVariable("helmName") @NotNull final String helmName) {
 		LOG.info("delete /helm uninstall");
 		final ProcessResult res = ws.helmUninstall(helmName);
-		LOG.info("Proceess result1 "+res);
+		LOG.info("Proceess result1 " + res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
 		return ResponseEntity.ok(res.getErrout());
@@ -411,9 +413,9 @@ public class JujuController {
 
 	@PostMapping(value = "/command", produces = "application/json")
 	public ResponseEntity<String> command(@RequestBody @NotNull final String cmd) {
-		LOG.info("calling /command:"+cmd);
+		LOG.info("calling /command:" + cmd);
 		final ProcessResult res = ws.raw(cmd);
-		LOG.info("Proceess result1 "+res);
+		LOG.info("Proceess result1 " + res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
 		return ResponseEntity.ok(res.getStdout());
