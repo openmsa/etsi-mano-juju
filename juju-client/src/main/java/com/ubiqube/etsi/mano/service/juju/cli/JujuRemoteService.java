@@ -20,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.service.annotation.DeleteExchange;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -28,6 +30,8 @@ import org.springframework.web.service.annotation.PutExchange;
 
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCloud;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
+
+import jakarta.validation.constraints.NotNull;
 
 @Service
 @HttpExchange(url = "/juju", accept = "application/json", contentType = "application/json")
@@ -112,5 +116,26 @@ public interface JujuRemoteService {
 
 	@GetExchange("/status")
 	ResponseEntity<String> status();
+	
+	@GetExchange("/isk8sready")
+	ResponseEntity<Boolean> isK8sReady();
+	
+    @PostExchange("/kubeconfig")
+	ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename);
+    
+    @PostExchange(value = "/helminstall/{helmName}" , contentType= "multipart/form-data")
+	ResponseEntity<String> helmInstall(@PathVariable("helmName") @NotNull final String helmName, @RequestParam("tgzfile") MultipartFile tgzfile);
+    
+    @PostExchange("/helminstall2/{helmName}")
+	ResponseEntity<String> helmInstall2(@PathVariable("helmName") @NotNull final String helmName, @RequestBody @NotNull final String filename);
+ 
+	@GetExchange("/helmlist")
+	ResponseEntity<String> helmList();
+	
+	@DeleteExchange("/helmuninstall/{helmName}")
+	ResponseEntity<String> helmUninstall(@PathVariable("helmName") @NotNull final String helmName);
+
+
+    
 
 }

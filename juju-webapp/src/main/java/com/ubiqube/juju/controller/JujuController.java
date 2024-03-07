@@ -1,9 +1,11 @@
 package com.ubiqube.juju.controller;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 
-import com.ubiqube.juju.JujuException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,11 +19,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCloud;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuCredential;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuRegion;
+import com.ubiqube.juju.JujuException;
 import com.ubiqube.juju.service.ProcessResult;
 import com.ubiqube.juju.service.WorkspaceService;
 
@@ -315,6 +319,100 @@ public class JujuController {
 	public ResponseEntity<String> status() {
 		LOG.info("calling /status");
 		final ProcessResult res = ws.status();
+		LOG.info("Proceess result1 "+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		return ResponseEntity.ok(res.getStdout());
+	}
+
+	@GetMapping(value = "/isk8sready", produces = "application/json")
+	public ResponseEntity<Boolean> isK8sReady() {
+		LOG.info("calling /isK8sReady");
+		boolean result= ws.isK8sReady();
+		return ResponseEntity.ok(result);
+	}
+
+	@PostMapping(value = "/kubeconfig", produces = "application/json")
+	public ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename) {
+		LOG.info("post /kubeconfig");
+		final ProcessResult res = ws.kubeConfig();
+		LOG.info("Proceess result1 "+res);
+		LOG.info(res.getStdout());
+		BufferedWriter writer = null;
+		try {
+			writer = new BufferedWriter(new FileWriter(filename));
+		    writer.write(res.getStdout());
+		    writer.close();
+		} catch (IOException ioe) {
+			return ResponseEntity.ok(ioe.getMessage());
+		}
+		LOG.error(res.getErrout());
+		if(res.getExitCode()==1) {
+			return ResponseEntity.ok(res.getErrout());
+		}
+		return new ResponseEntity<>(res.getStdout(),HttpStatus.CREATED);
+	}
+
+	@PostMapping(value = "/helminstall/{helmName}", produces = "application/json", consumes = { "multipart/form-data" })
+	public ResponseEntity<String> helmInstall(@PathVariable("helmName") @NotNull final String helmName, @RequestParam("file") MultipartFile tgzfile) {
+		LOG.info("post /helminstall");
+		try {
+			final InputStream is = new ByteArrayInputStream(tgzfile.getBytes());
+			final String filename = helmName+".tgz";
+			ws.pushPayload(is, filename);
+			final ProcessResult res = ws.helmInstall(helmName, filename);
+			LOG.info("Proceess result1 "+res);
+			LOG.info(res.getStdout());
+			LOG.error(res.getErrout());
+			if(res.getExitCode()==1) {
+				return ResponseEntity.ok(res.getErrout());
+			}
+			return new ResponseEntity<>(res.getStdout(),HttpStatus.OK);
+		} catch (IOException e) {
+			throw new JujuException(e);
+		}	
+	}
+	
+	@PostMapping(value = "/helminstall2/{helmName}", produces = "application/json")
+	public ResponseEntity<String> helmInstall2(@PathVariable("helmName") @NotNull final String helmName, @RequestBody @NotNull final String filename) {
+		LOG.info("post /helminstall2");
+			final ProcessResult res = ws.helmInstall(helmName, filename);
+			LOG.info("Proceess result1 "+res);
+			LOG.info(res.getStdout());
+			LOG.error(res.getErrout());
+			if(res.getExitCode()==1) {
+				return ResponseEntity.ok(res.getErrout());
+			}
+			return new ResponseEntity<>(res.getStdout(),HttpStatus.CREATED);	
+	}
+	
+	@GetMapping(value = "/helmlist", produces = "application/json")
+	public ResponseEntity<String> helmList() {
+		LOG.info("calling /helmlist");
+		final ProcessResult res = ws.helmList();
+		LOG.info("Proceess result1 "+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		if(res.getExitCode()==1) {
+			return ResponseEntity.ok(res.getErrout());
+		}
+		return ResponseEntity.ok(res.getStdout());
+	}
+
+	@DeleteMapping(value = "/helmuninstall/{helmName}", produces = "application/json")
+	public ResponseEntity<String> helmUninstall(@PathVariable("helmName") @NotNull final String helmName) {
+		LOG.info("delete /helm uninstall");
+		final ProcessResult res = ws.helmUninstall(helmName);
+		LOG.info("Proceess result1 "+res);
+		LOG.info(res.getStdout());
+		LOG.error(res.getErrout());
+		return ResponseEntity.ok(res.getErrout());
+	}
+
+	@PostMapping(value = "/command", produces = "application/json")
+	public ResponseEntity<String> command(@RequestBody @NotNull final String cmd) {
+		LOG.info("calling /command:"+cmd);
+		final ProcessResult res = ws.raw(cmd);
 		LOG.info("Proceess result1 "+res);
 		LOG.info(res.getStdout());
 		LOG.error(res.getErrout());
