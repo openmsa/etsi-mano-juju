@@ -60,6 +60,6 @@ public class JujuRemoteConfig {
 		webBuilder.observationRegistry(observationRegistry);
 		final WebClient client = webBuilder
 				.build();
-		return HttpServiceProxyFactory.builder(WebClientAdapter.forClient(client)).blockTimeout(Duration.ofMinutes(30)).build();
+		return HttpServiceProxyFactory.builder(WebClientAdapter.forClient(client)).blockTimeout(Duration.ofHours(5)).build();
 	}
 }

@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -298,6 +300,75 @@ public class WorkspaceService implements AutoCloseable {
 	public ProcessResult status() {
 //		Command: juju status --format=json
 		final List<String> list = List.of("juju", "status", SWTH_JSON_FMT);
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public boolean isK8sReady() {
+		ProcessResult result = status();
+		LOG.info("isK8sReady result", result.getStdout());
+        try {
+        	JSONObject jsondata = new JSONObject(result.getStdout());
+        	JSONObject applications = jsondata.getJSONObject("applications");
+        	for (String appName : applications.keySet()) {
+                JSONObject application = applications.getJSONObject(appName);
+                JSONObject appStatus = application.getJSONObject("application-status");
+
+                // Get the "current" status and compare with "active"
+                String currentStatus = appStatus.getString("current");
+                if (!"active".equalsIgnoreCase(currentStatus)) {
+                    return false; // If any application is not active, return false
+                }
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+	public ProcessResult kubeConfig() {
+//		Command: juju ssh kubernetes-control-plane/0 -- cat config > ~/.kube/config
+		final List<String> list = List.of("juju", "ssh", "kubernetes-control-plane/0", "--", "cat", "config");
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult helmList() {
+//		Command: helm list
+		final List<String> list = List.of("helm", "list");
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+	
+	public ProcessResult helmInstall(final String helmName, final String fileName) {
+//		Command: helm install myhelm ./mydb-0.1.0.tgz
+		String filePath = "./"+fileName;
+		final List<String> list = List.of("helm", "install", helmName, filePath);
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	
+	public ProcessResult helmUninstall(final String helmName) {
+//		Command: helm uninstall myhelm
+		final List<String> list = List.of("helm", "uninstall", helmName);
+		LOG.info("{}", list);
+		final ProcessBuilder builder = new ProcessBuilder(list);
+		builder.directory(wsRoot);
+		return run(builder);
+	}
+
+	public ProcessResult raw(final String cmd) {
+		String [] tmp = cmd.split(" ");
+		final List<String> list = Arrays.asList(tmp);
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
