@@ -46,7 +46,6 @@ public interface JujuRemoteService {
 	@GetExchange("/cloud/{cloudname}")
 	ResponseEntity<String> cloudDetail(@PathVariable("cloudname") final String cloudname);
 
-
 	@DeleteExchange("/cloud/{cloudname}")
 	ResponseEntity<String> removeCloud(@PathVariable("cloudname") final String cloudname);
 
@@ -61,7 +60,6 @@ public interface JujuRemoteService {
 
 	@GetExchange("/credential/{cloudname}/{credname}")
 	ResponseEntity<String> credentialDetails(@PathVariable("cloudname") final String cloudname, @PathVariable("credname") final String credname);
-
 
 	@DeleteExchange("/credential/{cloudname}/{name}")
 	ResponseEntity<String> removeCredential(@PathVariable("cloudname") final String cloudname, @PathVariable("name") final String name);
@@ -101,7 +99,6 @@ public interface JujuRemoteService {
 	@GetExchange("/model/{name}")
 	ResponseEntity<String> modelDetail(@PathVariable("name") final String name);
 
-
 	@DeleteExchange("/model/{name}")
 	ResponseEntity<String> removeModel(@PathVariable("name") final String name);
 
@@ -120,13 +117,13 @@ public interface JujuRemoteService {
 	@GetExchange("/isk8sready")
 	ResponseEntity<Boolean> isK8sReady();
 	
-    @PostExchange("/kubeconfig")
+	@PostExchange("/kubeconfig")
 	ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename);
-    
-    @PostExchange(value = "/helminstall/{helmName}" , contentType= "multipart/form-data")
+	
+	@PostExchange(value = "/helminstall/{helmName}" , contentType= "multipart/form-data")
 	ResponseEntity<String> helmInstall(@PathVariable("helmName") @NotNull final String helmName, @RequestParam("tgzfile") MultipartFile tgzfile);
-    
-    @PostExchange("/helminstall2/{helmName}")
+	
+	@PostExchange("/helminstall2/{helmName}")
 	ResponseEntity<String> helmInstall2(@PathVariable("helmName") @NotNull final String helmName, @RequestBody @NotNull final String filename);
  
 	@GetExchange("/helmlist")
@@ -134,8 +131,4 @@ public interface JujuRemoteService {
 	
 	@DeleteExchange("/helmuninstall/{helmName}")
 	ResponseEntity<String> helmUninstall(@PathVariable("helmName") @NotNull final String helmName);
-
-
-    
-
 }
