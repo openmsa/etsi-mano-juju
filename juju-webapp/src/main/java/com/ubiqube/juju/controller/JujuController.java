@@ -332,10 +332,16 @@ public class JujuController {
 		return ResponseEntity.ok(result);
 	}
 
+	@GetMapping(value = "/kubeconfig", produces = "application/json")
+	public ResponseEntity<String> getKubeConfig(String vnfid) {
+		final ProcessResult res = ws.kubeConfig("kubernetes-control-plane/0");
+		return ResponseEntity.ok(res.getStdout());
+	}
+
 	@PostMapping(value = "/kubeconfig", produces = "application/json")
 	public ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename) {
 		LOG.info("post /kubeconfig");
-		final ProcessResult res = ws.kubeConfig();
+		final ProcessResult res = ws.kubeConfig("kubernetes-control-plane/0");
 		LOG.info("Proceess result1 " + res);
 		LOG.info(res.getStdout());
 		BufferedWriter writer = null;

@@ -16,12 +16,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ubiqube.etsi.mano.service.juju.entities.JujuMetadata;
 import com.ubiqube.juju.JujuException;
 
@@ -178,7 +180,7 @@ public class WorkspaceService implements AutoCloseable {
 	}
 
 	public ProcessResult addController(final String imageId, final String osSeries, final String constraints, final String cloudname, final String controllername, final String region, final String networkId) {
-//		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
+//		Command: juju bootstrap --bootstrap-image=0bc65ba0-6f27-4128-b596-79e6788e8574 --bootstrap-series=jammy --bootstrap-constraints="arch=amd64 instance-type=FLAVORNAME" openstack-inari-108 openstack-inari-108-controller --model-default network=82dbcdf4-82d3-4e95-9244-550673250dad --debug --verbose
 		final List<String> list = new ArrayList<>();
 		list.add("juju bootstrap");
 		if (StringUtils.isNotBlank(imageId)) {
@@ -309,28 +311,31 @@ public class WorkspaceService implements AutoCloseable {
 	public boolean isK8sReady() {
 		ProcessResult result = status();
 		LOG.info("isK8sReady result", result.getStdout());
+		// Parse the JSON string
+		ObjectMapper mapper = new ObjectMapper();
 		try {
-			JSONObject jsondata = new JSONObject(result.getStdout());
-			JSONObject applications = jsondata.getJSONObject("applications");
-			for (String appName : applications.keySet()) {
-				JSONObject application = applications.getJSONObject(appName);
-				JSONObject appStatus = application.getJSONObject("application-status");
+			JsonNode rootNode = mapper.readTree(result.getStdout());
+			JsonNode applicationsNode = rootNode.get("applications");
 
-				// Get the "current" status and compare with "active"
-				String currentStatus = appStatus.getString("current");
+			// Check if all applications are active
+			boolean allActive = true;
+			for (JsonNode applicationNode : applicationsNode) {
+				JsonNode appStatusNode = applicationNode.get("application-status");
+				String currentStatus = appStatusNode.get("current").asText();
 				if (!"active".equalsIgnoreCase(currentStatus)) {
-					return false; // If any application is not active, return false
+					allActive = false;
+					break;
 				}
 			}
+			return allActive;
 		} catch (Exception e) {
-			e.printStackTrace();
+			throw new JujuException("Error occurred while checking application statuses.  "+e);
 		}
-		return true;
 	}
 
-	public ProcessResult kubeConfig() {
+	public ProcessResult kubeConfig(String controlplane) {
 //		Command: juju ssh kubernetes-control-plane/0 -- cat config > ~/.kube/config
-		final List<String> list = List.of("juju", "ssh", "kubernetes-control-plane/0", "--", "cat", "config");
+		final List<String> list = List.of("juju", "ssh", controlplane, "--", "cat", "config");
 		LOG.info("{}", list);
 		final ProcessBuilder builder = new ProcessBuilder(list);
 		builder.directory(wsRoot);
