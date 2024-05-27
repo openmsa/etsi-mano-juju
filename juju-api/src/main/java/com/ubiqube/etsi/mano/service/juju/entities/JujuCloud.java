@@ -20,6 +20,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.lang.Nullable;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,9 +46,8 @@ import lombok.ToString;
 public class JujuCloud implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public JujuCloud(String name, String type, String authTypes, List<JujuRegion> regions, JujuCredential credential,
-					 JujuMetadata metadata) {
-		super();
+	public JujuCloud(final String name, final String type, final String authTypes, final List<JujuRegion> regions, final JujuCredential credential,
+			final JujuMetadata metadata) {
 		this.name = name;
 		this.type = type;
 		this.authTypes = authTypes;
@@ -59,6 +60,7 @@ public class JujuCloud implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private UUID id;
 
+	@Nullable
 	@Column(name = "name")
 	private String name;
 

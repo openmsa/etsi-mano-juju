@@ -19,6 +19,7 @@ package com.ubiqube.etsi.mano.service.juju.entities;
 import java.io.Serializable;
 import java.util.UUID;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,8 +39,7 @@ import lombok.ToString;
 public class JujuCredential implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public JujuCredential(String name, String authType, String username, String password, String tenantName) {
-		super();
+	public JujuCredential(final String name, final String authType, final String username, final String password, final String tenantName) {
 		this.name = name;
 		this.authType = authType;
 		this.username = username;
@@ -51,6 +51,7 @@ public class JujuCredential implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private UUID id;
 
+	@Nullable
 	private String name;
 	private String authType;
 	private String username;

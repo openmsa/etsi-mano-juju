@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,9 +43,8 @@ import lombok.ToString;
 public class JujuMetadata implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public JujuMetadata(String name, String imageId, String path, String osSeries, String osAuthUrl,
-						List<String> constraints, String networkId, String regionName, List<JujuModel> models) {
-		super();
+	public JujuMetadata(final String name, final String imageId, final String path, final String osSeries, final String osAuthUrl,
+			final List<String> constraints, final String networkId, final String regionName, final List<JujuModel> models) {
 		this.name = name;
 		this.imageId = imageId;
 		this.path = path;
@@ -60,6 +60,7 @@ public class JujuMetadata implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private UUID id;
 
+	@Nullable
 	private String name;
 	private String imageId;
 	private String path;
