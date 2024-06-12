@@ -116,7 +116,10 @@ public interface JujuRemoteService {
 	
 	@GetExchange("/isk8sready")
 	ResponseEntity<Boolean> isK8sReady();
-	
+
+	@GetExchange("/kubeconfig")
+	ResponseEntity<String> getKubeConfig(String vnfId);
+
 	@PostExchange("/kubeconfig")
 	ResponseEntity<String> addKubeConfig(@RequestBody @NotNull final String filename);
 	
