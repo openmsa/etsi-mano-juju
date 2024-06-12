@@ -112,9 +112,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20240205</version>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
@@ -146,7 +145,7 @@
 			<id>native</id>
 			<properties>
 				<repackage.classifier>exec</repackage.classifier>
-				<native-buildtools.version>0.9.25</native-buildtools.version>
+				<native-buildtools.version>0.10.2</native-buildtools.version>
 			</properties>
 			<dependencies>
 				<dependency>
