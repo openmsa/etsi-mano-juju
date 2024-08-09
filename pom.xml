@@ -20,7 +20,7 @@
 		<module>juju-client</module>
 	</modules>
 	<scm>
-		<developerConnection>scm:git:https://github.com/openmsa/etsi-mano-juju.git</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com/openmsa/etsi-mano-juju.git</developerConnection>
 	  <tag>HEAD</tag>
   </scm>
 	<distributionManagement>
