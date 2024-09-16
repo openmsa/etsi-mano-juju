@@ -22,7 +22,9 @@ import java.util.UUID;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -66,6 +68,7 @@ public class JujuMetadata implements Serializable {
 	private String path;
 	private String osSeries;
 	private String osAuthUrl;
+	@ElementCollection(fetch = FetchType.EAGER)
 	private List<String> constraints;
 	private String networkId;
 	private String regionName;
