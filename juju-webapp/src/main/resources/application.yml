@@ -48,6 +48,9 @@ server:
     contextPath: /juju
 
 spring:
+  cloud:
+    compatibility-verifier:
+      enabled: false
   output:
     ansi:
       enabled: always
