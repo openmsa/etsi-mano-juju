@@ -36,7 +36,7 @@
 	<properties>
 		<sonar.jacoco.xmlReportPaths>${project.basedir}/../target/site/jacoco-aggregate/jacoco.xml</sonar.jacoco.xmlReportPaths>
 		<java.version>21</java.version>
-		<version.springdoc>2.8.9</version.springdoc>
+		<version.springdoc>2.8.10</version.springdoc>
 		<spring-cloud.version>2025.0.0</spring-cloud.version>
 	</properties>
 	<build>
